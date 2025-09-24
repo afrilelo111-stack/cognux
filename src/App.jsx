@@ -1,51 +1,35 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import "./App.css"
 
 function App() {
   const [tasks, setTasks] = useState([])
-  const [newTask, setNewTask] = useState("")
+  const [title, setTitle] = useState("")
   const [dark, setDark] = useState(false)
 
-  const API = "https://03e7e2e98830.ngrok-free.app"
-
-  // Fetch tasks dari backend saat load
-  useEffect(() => {
-    fetch(API)
-      .then(res => res.json())
-      .then(data => setTasks(data))
-  }, [])
-
-  // Tambah task
   const addTask = () => {
-    if (!newTask.trim()) return
-    fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: newTask.trim() })
-    })
-      .then(res => res.json())
-      .then(task => setTasks([task, ...tasks]))
-    setNewTask("")
+    if (!title.trim()) return
+    const newTask = {
+      id: Date.now(),
+      text: title,
+      done: false,
+      color: ["blue", "green", "yellow"][Math.floor(Math.random() * 3)]
+    }
+    setTasks([newTask, ...tasks])
+    setTitle("")
   }
 
-  // Hapus task
-  const deleteTask = (id) => {
-    fetch(`${API}/${id}`, { method: "DELETE" })
-      .then(res => res.json())
-      .then(() => setTasks(tasks.filter(t => t.id !== id)))
+  const toggleDone = (id) => {
+    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t))
   }
 
-  // Toggle done
-  const toggleTask = (id) => {
-    fetch(`${API}/${id}/toggle`, { method: "PUT" })
-      .then(res => res.json())
-      .then(updated => setTasks(tasks.map(t => t.id === id ? updated : t)))
+  const removeTask = (id) => {
+    setTasks(tasks.filter(t => t.id !== id))
   }
 
   return (
     <div className={`app ${dark ? "dark" : ""}`}>
       <header>
-        <h1>📋 ToDo List</h1>
+        <h1>📋 My Tasks</h1>
         <button onClick={() => setDark(!dark)} className="mode-btn">
           {dark ? "☀️" : "🌙"}
         </button>
@@ -54,27 +38,26 @@ function App() {
       <div className="input-box">
         <input
           type="text"
-          placeholder="Tulis tugas baru..."
-          value={newTask}
-          onChange={e => setNewTask(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && addTask()}
+          placeholder="Tambahkan tugas..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addTask()}
         />
         <button onClick={addTask}>➕</button>
       </div>
 
-      <main>
+      <main className="task-grid">
         {tasks.length === 0 && <p className="empty">Belum ada tugas 💤</p>}
+
         {tasks.map(task => (
-          <div key={task.id} className={`task ${task.done ? "done" : ""}`}>
-            <label>
-              <input
-                type="checkbox"
-                checked={task.done}
-                onChange={() => toggleTask(task.id)}
-              />
-              <span>{task.text}</span>
-            </label>
-            <button onClick={() => deleteTask(task.id)}>🗑️</button>
+          <div key={task.id} className={`task-card ${task.color} ${task.done ? "done" : ""}`}>
+            <h3>{task.text}</h3>
+            <div className="actions">
+              <button onClick={() => toggleDone(task.id)}>
+                {task.done ? "✅" : "⭕"}
+              </button>
+              <button onClick={() => removeTask(task.id)}>🗑️</button>
+            </div>
           </div>
         ))}
       </main>
