@@ -6,7 +6,7 @@ function App() {
   const [newTask, setNewTask] = useState("")
   const [dark, setDark] = useState(false)
 
-  const API = "http://localhost:5000/api/tasks"
+  const API = "https://03e7e2e98830.ngrok-free.app"
 
   // Fetch tasks dari backend saat load
   useEffect(() => {
